@@ -38,7 +38,7 @@ let dummy name (interval:int) =
 let tested = dummy "foo" 10
 
 ```
-To test against other implementations:
+#### Testing against other implementations
 ```fsharp
 let testBed = new OtherImplemantationTester<IOperation>(tested, [dummy "bar" 5 ; dummy "baz" 20 ])
 
@@ -47,14 +47,14 @@ testBed.Test "test 0" (repeat 100 (fun o -> o.Run()))
 // foo.'test 0' was 2.00x faster and 1.00x more memory efficient than bar.'test 0'
 // foo.'test 0' was 0.50x faster and 1.00x more memory efficient than baz.'test 0'
 ```
-To test against past implementations:
+#### Testing against past test runs
 ```fsharp
 let test = new PastImplementationTester<IOperation>(tested, Version(0,3), historyFile = "persist.xml")
 
 test.Test "test 0" (fun s -> s.Run())
 // Output
-// 'Version 0.3'.'test 0' was 0.91x faster and 1.00x more memory efficient than 'Version 0.1'.'test 0'
-// 'Version 0.3'.'test 0' was 1.00x faster and 1.00x more memory efficient than 'Version 0.2'.'test 0'
+// 'Version 0.3'.test0 was 1.00x faster and 1.00x more memory efficient than 'Version 0.2'.test0
+// 'Version 0.3'.test0 was 1.00x faster and 1.00x more memory efficient than 'Version 0.1'.test0
 
 // append current results to history file
 test.PersistCurrentResults()
