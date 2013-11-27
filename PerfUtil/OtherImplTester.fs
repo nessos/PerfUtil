@@ -8,13 +8,12 @@
     type OtherImplemantationTester<'Testable when 'Testable :> ITestable>
         (testedImpl : 'Testable, otherImpls : 'Testable list, ?comparer : IPerformanceComparer, ?verbose, ?throwOnError) =
 
-        inherit PerformanceTester<'Testable>(testedImpl)
-
         let comparer = match comparer with Some c -> c | None -> new TimeComparer() :> _
         let verbose = defaultArg verbose true
         let throwOnError = defaultArg throwOnError false
 
-        override __.Test (testId : string) (f : 'Testable -> unit) =
+        member __.TestedImplementation = testedImpl
+        member __.Test (testId : string) (f : 'Testable -> unit) =
             let thisResult = benchmark testedImpl.ImplementationName testId (fun () -> f testedImpl)
             let otherResults = 
                 otherImpls 
@@ -33,3 +32,7 @@
                 for msg, other, isFaster in otherResults do
                     if not isFaster then
                         raise <| new PerformanceException(msg, thisResult, other)
+
+        interface IPerformanceTester<'Testable> with
+            member __.TestedImplementation = __.TestedImplementation
+            member __.Test testId testF = __.Test testId testF

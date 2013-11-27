@@ -11,8 +11,6 @@
         (currentImpl : 'Testable, testRunId : string, ?historyFile : string, 
             ?comparer : IPerformanceComparer, ?verbose : bool, ?throwOnError : bool) =
 
-        inherit PerformanceTester<'Testable>(currentImpl)
-
         let comparer = match comparer with Some p -> p | None -> new TimeComparer() :> _ 
         let verbose = defaultArg verbose true
         let throwOnError = defaultArg throwOnError false
@@ -55,8 +53,10 @@
             new PastImplementationTester<'Testable>
                 (currentImpl, sprintf "Version %O" version, ?historyFile = historyFile, 
                     ?comparer = comparer, ?verbose = verbose, ?throwOnError = throwOnError)
-            
-        override __.Test (testId : string) (testF : 'Testable -> unit) =
+
+        member __.TestedImplementation = currentImpl
+
+        member __.Test (testId : string) (testF : 'Testable -> unit) =
             if isCommited.Value then invalidOp "Test run has been finalized."
             lock currentTests (fun () ->
                 let result = benchmark testRunId testId (fun () -> testF currentImpl)
@@ -73,3 +73,8 @@
                     let history = { history with TestRuns = history.TestRuns.Add(testRunId, currentRun) }
                     historyToFile historyFile history
                     isCommited := true)
+
+
+        interface IPerformanceTester<'Testable> with
+            member __.TestedImplementation = __.TestedImplementation
+            member __.Test testId testF = __.Test testId testF

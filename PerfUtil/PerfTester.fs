@@ -4,8 +4,6 @@
     type ITestable =
         abstract ImplementationName : string
 
-    [<AbstractClass>]
-    type PerformanceTester<'Testable when 'Testable :> ITestable> (testedImplementation : 'Testable) =
-
-        member __.TestedImplementation = testedImplementation
+    type IPerformanceTester<'Testable when 'Testable :> ITestable> =
+        abstract TestedImplementation : 'Testable
         abstract Test : testId:string -> testF:('Testable -> unit) -> unit
