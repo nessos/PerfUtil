@@ -62,4 +62,4 @@ test.PersistCurrentResults()
 #### Defining abstract performance tests
 
 Both `OtherImplemantationTester<'T>` and `PastImplementationTester<'T>` are instances of the
-`IPerformanceTester<'T>` interface, so defining abstract performance comparison suites is actually possible.
+`IPerformanceTester<'T>` interface, so defining abstract performance testing suites is possible.
