@@ -28,9 +28,9 @@ let foo = dummy "foo" 10
 
 let test = new PastImplementationTester<IOperation>(foo, Version(0,1), historyFile = "D:/persist.xml", throwOnError = true)
 
-test.Test "A" (fun s -> s.Run())
-test.Test "B" (fun s -> s.Run())
-test.Test "C" (fun s -> s.Run())
+test.Test "A" (repeat 100 (fun o -> o.Run()))
+test.Test "B" (repeat 100 (fun o -> o.Run()))
+test.Test "C" (repeat 100 (fun o -> o.Run()))
 
 test.PersistCurrentResults()
 

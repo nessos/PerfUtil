@@ -19,9 +19,9 @@
     with
         override r.ToString () =
             let sb = new StringBuilder()
-            let dateFmt = r.Date.ToString("yyyy/MM/dd HH:mm")
-            sb.Append(sprintf "%s (%s): Real: %O, CPU: %O" r.TestId dateFmt r.Elapsed r.CpuTime) |> ignore
+            sb.Append(sprintf "%s: Real: %O, CPU: %O" r.TestId r.Elapsed r.CpuTime) |> ignore
             r.GcDelta |> List.iteri (fun g i -> sb.Append(sprintf ", gen%d: %d" g i) |> ignore)
+            sb.Append(sprintf ", Date: %O" r.Date) |> ignore
             sb.ToString()
 
     type PerformanceException (message : string, this : BenchmarkResult, other : BenchmarkResult) =
