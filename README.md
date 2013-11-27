@@ -51,7 +51,7 @@ testBed.Test "test 0" (repeat 100 (fun o -> o.Run()))
 ```fsharp
 let test = new PastImplementationTester<IOperation>(tested, Version(0,3), historyFile = "persist.xml")
 
-test.Test "test 0" (fun s -> s.Run())
+test.Test "test 0" (repeat 100 (fun s -> s.Run()))
 // Output
 // 'Version 0.3'.test0 was 1.00x faster and 1.00x more memory efficient than 'Version 0.2'.test0
 // 'Version 0.3'.test0 was 1.00x faster and 1.00x more memory efficient than 'Version 0.1'.test0
