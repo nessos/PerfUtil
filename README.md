@@ -59,3 +59,7 @@ test.Test "test 0" (fun s -> s.Run())
 // append current results to history file
 test.PersistCurrentResults()
 ```
+#### Defining abstract performance tests
+
+Both `OtherImplemantationTester<'T>` and `PastImplementationTester<'T>` are instances of the
+`IPerformanceTester<'T>` interface, so defining abstract performance comparison suites is actually possible.
