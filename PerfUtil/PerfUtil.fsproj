@@ -36,13 +36,14 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <ItemGroup>
-    <Compile Include="Benchmark.fs" />
+    <Compile Include="Types.fs" />
     <Compile Include="Utils.fs" />
+    <Compile Include="Benchmark.fs" />
     <Compile Include="PerfCompare.fs" />
     <Compile Include="Persist.fs" />
-    <Compile Include="PerfTester.fs" />
-    <Compile Include="PastVersionTester.fs" />
-    <Compile Include="OtherImplTester.fs" />
+    <Compile Include="ImplementationComparer.fs" />
+    <Compile Include="PastImplementationComparer.fs" />
+    <Compile Include="Extensions.fs" />
     <None Include="test.fsx" />
   </ItemGroup>
   <ItemGroup>

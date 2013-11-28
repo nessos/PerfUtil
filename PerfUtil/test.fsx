@@ -26,7 +26,7 @@ let foo = dummy "foo" 10
 
 // past version comparison
 
-let test = new PastImplementationTester<IOperation>(foo, Version(0,1), historyFile = "D:/persist.xml", throwOnError = true)
+let test = new PastImplementationComparer<IOperation>(foo, Version(0,1), historyFile = "D:/persist.xml", throwOnError = true)
 
 test.Test "A" (repeat 100 (fun o -> o.Run()))
 test.Test "B" (repeat 100 (fun o -> o.Run()))
@@ -36,6 +36,6 @@ test.PersistCurrentResults()
 
 // compare to other versions
 
-let test' = new OtherImplemantationTester<IOperation>(foo, [dummy "bar" 5 ; dummy "baz" 20 ], throwOnError = true)
+let test' = new ImplemantationComparer<IOperation>(foo, [dummy "bar" 5 ; dummy "baz" 20 ], throwOnError = true)
 
 test'.Test "A" (repeat 100 (fun o -> o.Run()))

@@ -4,10 +4,6 @@
 
     open PerfUtil.Utils
 
-    type IPerformanceComparer =
-        abstract IsBetterOrEquivalent : current:BenchmarkResult -> other:BenchmarkResult -> bool
-        abstract GetComparisonMessage : current:BenchmarkResult -> other:BenchmarkResult -> string
-
     type TimeComparer () =
         interface IPerformanceComparer with
             member __.IsBetterOrEquivalent (current : BenchmarkResult) (other : BenchmarkResult) =

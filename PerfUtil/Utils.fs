@@ -1,11 +1,11 @@
 ﻿namespace PerfUtil
 
+    open System
+
     module internal Utils =
 
-        open System
-
         [<Literal>]
-        let gcGenWeigh = 10
+        let gcGenWeight = 10
         
         // computes a performance improvement factor out of two given timespans
         // add + 1L to eliminate the slim possibility of division by zero's and NaN's
@@ -17,7 +17,7 @@
         // [ gen0 ; gen1 ; gen2 ] -> gen0 + 10 * gen1 + 10^2 * gen2
         let getSpace (r : BenchmarkResult) = 
             r.GcDelta
-            |> List.mapi (fun i g -> g * pown gcGenWeigh i) 
+            |> List.mapi (fun i g -> g * pown gcGenWeight i) 
             |> List.sum
 
         let getSpaceRatio (this : BenchmarkResult) (that : BenchmarkResult) =
@@ -33,8 +33,13 @@
         let defaultComparisonMessage (this : BenchmarkResult) (other : BenchmarkResult) =
             assert(this.TestId = other.TestId)
 
-            sprintf "%s.%s was %.2fx faster and %.2fx more memory efficient than %s.%s"
-                (quoteText this.ContextId) (quoteText other.TestId)
+            sprintf "%s.%s was %.2fx faster and %.2fx more memory efficient than %s.%s."
+                (quoteText this.SessionId) (quoteText other.TestId)
                     (getTimeSpanRatio this.Elapsed other.Elapsed)
                     (getSpaceRatio this other)
-                (quoteText other.ContextId) (quoteText other.TestId)
+                (quoteText other.SessionId) (quoteText other.TestId)
+
+        let getDuplicates xs =
+            xs
+            |> Seq.groupBy id 
+            |> Seq.choose (fun (id, vs) -> if Seq.length vs > 1 then Some id else None)
