@@ -136,7 +136,7 @@ let plot yaxis (metric : PerfResult -> float) (results : PerfResult list) =
 
 // read performance tests from 'Tests' module and run them
 let results =
-    PerfTest<ISerializer>.OfModuleMarker<Tests.Marker>()
+    PerfTest<IOperation>.OfModuleMarker<Tests.Marker>()
     |> PerfTest.run SerializerComparer.Create
 
 // plot everything
