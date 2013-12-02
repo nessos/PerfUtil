@@ -6,6 +6,7 @@
 
     /// An abstract implementation interface
     type ITestable =
+        /// Implementation name.
         abstract Name : string
 
     /// Represents a performance test for a given class of implementations.
@@ -19,15 +20,20 @@
     [<AbstractClass>]
     type PerformanceTester<'Testable when 'Testable :> ITestable> () =
 
+        /// The implementation under test.
         abstract TestedImplementation : 'Testable
+        /// Run a performance test.
         abstract RunTest : PerfTest<'Testable> -> unit
+        /// Get accumulated test results.
         abstract GetTestResults : unit -> TestSession list
-
+        /// Benchmarks given function.
         member __.Run testId testF = __.RunTest { Id = testId ; Test = testF }
 
     /// compares between two performance results
     and IPerformanceComparer =
+        /// Decides if current performance is better or equivalent to the other/older performance.
         abstract IsBetterOrEquivalent : current:PerfResult -> other:PerfResult -> bool
+        /// Returns a message based on comparison of the two benchmarks.
         abstract GetComparisonMessage : current:PerfResult -> other:PerfResult -> string
 
     /// Represents a collection of tests performed in a given run.

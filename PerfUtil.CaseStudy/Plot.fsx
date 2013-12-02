@@ -23,7 +23,7 @@ let results =
     PerfTest<ISerializer>.OfModuleMarker<Tests.Marker>()
     |> PerfTest.run SerializerComparer.Create
 
-// plot results
+// plot everything
 results
 |> TestSession.groupByTest
 |> Map.toList

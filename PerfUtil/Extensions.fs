@@ -37,7 +37,7 @@
         [<RequireQualifiedAccess>]
         module PerfTest =
 
-            /// perform 
+            /// initializes a new performance tester and executes given tests
             let run<'Impl when 'Impl :> ITestable> 
                 (testerFactory : unit -> PerformanceTester<'Impl>) (perfTests : PerfTest<'Impl> list) =
 

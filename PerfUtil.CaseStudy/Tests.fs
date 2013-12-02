@@ -16,33 +16,31 @@
                 let x' = s.Deserialize<'T> m
                 m.Position <- 0L
 
-
-
         [<PerfTest>]
-        let ``Int list`` (s : ISerializer) = roundtrip 1000 [1..1000] s
+        let ``int list`` (s : ISerializer) = roundtrip 1000 [1..1000] s
 
 
         let values = [1 .. 1000] |> List.map string
 
         [<PerfTest>]
-        let ``String list`` (s : ISerializer) = roundtrip 1000 values s
+        let ``string list`` (s : ISerializer) = roundtrip 1000 values s
 
 
         let array3D = Array3D.init 100 100 100 (fun i j k -> float (i * j + k))
 
         [<PerfTest>]
-        let ``Array: Rank-3 Float`` s = roundtrip 10 array3D s
+        let ``float [,,]`` s = roundtrip 10 array3D s
 
         let objArray = [| obj() ; box "string" ; box (Some 53) ; box 2 |]
 
         [<PerfTest>]
-        let ``Array: Obj`` s = roundtrip 1000 objArray s
+        let ``obj []`` s = roundtrip 1000 objArray s
 
 
         let arrayDU = [| for i in 1 .. 10000 -> (Some ("lorem ipsum" + string i, i)) |]
 
         [<PerfTest>]
-        let ``Array: Discriminated Unions`` s =  roundtrip 100 arrayDU s
+        let ``(string * int) option []`` s =  roundtrip 100 arrayDU s
 
         
         type BinTree<'T> = Leaf | Node of 'T * BinTree<'T> * BinTree<'T>

@@ -6,9 +6,12 @@
 
     [<AbstractClass>]
     [<TestFixture>]
+    /// Inheriting this class in an assembly defines a dynamic NUnit test fixture.
     type NUnitPerf<'Impl when 'Impl :> ITestable> () =
 
+        /// specifies the performance testbed to be used.
         abstract PerfTester : PerformanceTester<'Impl>
+        /// specifies the performance tests to be tested.
         abstract PerfTests : PerfTest<'Impl> list
 
         member internal u.TestCaseProvider = 
