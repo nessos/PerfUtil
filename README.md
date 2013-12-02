@@ -10,14 +10,15 @@ Two main operation modes are provided:
 ```fsharp
 open PerfUtil
 
-let result = benchmark "test suite foo" "test0" (repeat 100 (fun () -> Thread.Sleep 10))
+let result = Benchmark.Run (repeat 100 (fun () -> Thread.Sleep 10))
 
-val result : BenchmarkResult = {TestId = "test0";
-                                ContextId = "test suite foo";
-                                Date = 27/11/2013 5:34:55 pm;
-                                Elapsed = 00:00:00.9998089;
-                                CpuTime = 00:00:00;
-                                GcDelta = [0; 0; 0];}
+val result : PerfResult = {TestId = "";
+                           SessionId = "";
+                           Date = 2/12/2013 7:30:01 pm;
+                           Error = null;
+                           Elapsed = 00:00:00.9998810;
+                           CpuTime = 00:00:00;
+                           GcDelta = [0; 0; 0];}
 ```
 
 ###Comparing implementations
@@ -31,7 +32,7 @@ type IOperation =
 let dummy name (interval:int) = 
     {
         new IOperation with
-            member __.ImplementationName = name
+            member __.Name = name
             member __.Run () = System.Threading.Thread.Sleep(interval)
     }
 
@@ -44,8 +45,8 @@ let testBed = new OtherImplemantationTester<IOperation>(tested, [dummy "bar" 5 ;
 
 testBed.Test "test 0" (repeat 100 (fun o -> o.Run()))
 // Output
-// foo.'test 0' was 2.00x faster and 1.00x more memory efficient than bar.'test 0'
-// foo.'test 0' was 0.50x faster and 1.00x more memory efficient than baz.'test 0'
+// 'test 0': foo was 0.50x faster and 1.00x more memory efficient than bar.
+// 'test 0': foo was 2.00x faster and 1.00x more memory efficient than baz.
 ```
 #### Testing against past test runs
 ```fsharp
@@ -53,13 +54,98 @@ let test = new PastImplementationTester<IOperation>(tested, Version(0,3), histor
 
 test.Test "test 0" (repeat 100 (fun o -> o.Run()))
 // Output
-// 'Version 0.3'.test0 was 1.00x faster and 1.00x more memory efficient than 'Version 0.2'.test0
-// 'Version 0.3'.test0 was 1.00x faster and 1.00x more memory efficient than 'Version 0.1'.test0
+// 'test 0': 'foo v.0.3' was 1.00x faster and 1.00x more memory efficient than 'foo v.0.1'.
+// 'test 0': 'foo v.0.3' was 1.00x faster and 1.00x more memory efficient than 'foo v.0.2'.
 
 // append current results to history file
 test.PersistCurrentResults()
 ```
 #### Defining abstract performance tests
 
-Both `OtherImplemantationTester<'T>` and `PastImplementationTester<'T>` are instances of the
-`IPerformanceTester<'T>` interface, so defining abstract performance testing suites is possible.
+In PerfUtil, an abstract performance test can be represented with the record:
+```fsharp
+type PerfTest<IOperation> =
+    {
+        Id : string
+        Test : IOPeration -> unit
+    }
+
+```
+Performance tests can be declared in the following manner:
+```fsharp
+type Tests =
+
+    [<PerfTest>]
+    static member ``Test 1`` (o : IOperation) = o.Run ()
+
+    [<PerfTest>]
+    static member ``Test 2`` (o : IOperation) = o |> repeat 100 (fun o -> o.Run ())
+
+
+let tests = PerfTest<IOperation>.OfType<Tests> ()
+// val tests : PerfTest<IOperation> list =
+//   [{Id = "Tests.Test 1";
+//     Test = <fun:Wrap@90>;}; {Id = "Tests.Test 2";
+//                              Test = <fun:Wrap@90>;}]
+```
+Tests can then be run with a concrete performance tester like so:
+```fsharp
+tests |> PerfTest.run (fun () -> new PastImplementationTester<IOperation>(...))
+```
+It is possible to define performance tests in F# modules using the following technique:
+```fsharp
+module Tests =
+
+    type Marker = class end
+
+    [<PerfTest>]
+    let ``Test 0`` (o : IOperation) = o.Run ()
+
+
+let test = PerfTest<IOperation>.OfModuleMarker<Tests.Marker> () |> List.head
+
+```
+
+### NUnit Support
+
+A collection of performance tests can be used to define NUnit tests.
+To do so, simply place a concrete instance of the `NUnitPerf` abstract class
+in your assembly.
+```fsharp
+[<AbstractClass>]
+[<TestFixture>]
+type NUnitPerf<'Impl when 'Impl :> ITestable> () =
+    abstract PerfTester : PerformanceTester<'Impl>
+    abstract PerfTests : PerfTest<'Impl> list
+```
+
+### Plotting Results
+
+Using `FSharp.Charting`, the following code provides a way to plot test results:
+```fsharp
+open FSharp.Charting
+open PerfUtil
+
+// simple plot function
+let plot yaxis (metric : PerfResult -> float) (results : PerfResult list) =
+    let values = results |> List.choose (fun r -> if r.HasFailed then None else Some (r.SessionId, metric r))
+    let name = results |> List.tryPick (fun r -> Some r.TestId)
+    let ch = Chart.Bar(values, ?Name = name, ?Title = name, YTitle = yaxis)
+    ch.ShowChart()
+
+
+// read performance tests from 'Tests' module and run them
+let results =
+    PerfTest<ISerializer>.OfModuleMarker<Tests.Marker>()
+    |> PerfTest.run SerializerComparer.Create
+
+// plot everything
+TestSession.groupByTest results
+|> Map.iter (fun _ r -> plot "milliseconds" (fun r -> r.Elapsed.TotalMilliseconds) r)
+
+```
+
+### Case Study
+
+For more in-depth examples, I have included a simple performance testing implementation 
+for the `FsPickler` serializer, which can be found in the `PerfUtil.CaseStudy` project.
