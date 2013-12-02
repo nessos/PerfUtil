@@ -2,7 +2,7 @@
 
     open PerfUtil
 
-    // create and NUNit test bed
+    // create an NUnit test bed
 
     type SerializationTests() =
         inherit NUnitPerf<ISerializer> ()
