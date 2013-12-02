@@ -5,6 +5,8 @@ Two main operation modes are provided:
 * Comparison of a given implementation against others.
 * Comparison of current implementation against a history of past performance tests.
 
+A NuGet package is available [here](https://www.nuget.org/packages/PerfUtil/).
+
 ###Basic Usage
 
 ```fsharp
