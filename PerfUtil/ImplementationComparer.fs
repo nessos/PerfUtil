@@ -8,6 +8,8 @@
     /// Compares implementation performance against a list of other implementations
     type ImplemantationComparer<'Testable when 'Testable :> ITestable>
         (testedImpl : 'Testable, otherImpls : 'Testable list, ?comparer : IPerformanceComparer, ?verbose, ?throwOnError) =
+        
+        inherit PerformanceTester<'Testable>()
 
         do
             if otherImpls.IsEmpty then invalidArg "otherImpls" "need at least one alternative implementation."
@@ -15,7 +17,7 @@
             // check for duplicate implementations in list
             let duplicates =
                 testedImpl :: otherImpls
-                |> Seq.map (fun impl -> impl.ImplementationName)
+                |> Seq.map (fun impl -> impl.Name)
                 |> getDuplicates
                 |> Seq.toList
 
@@ -29,19 +31,20 @@
         let verbose = defaultArg verbose true
         let throwOnError = defaultArg throwOnError false
 
-        let mutable thisSession = TestSession.Empty testedImpl.ImplementationName
-        let otherSessions = otherImpls |> List.toArray |> Array.map (fun impl -> TestSession.Empty impl.ImplementationName)
+        let mutable thisSession = TestSession.Empty testedImpl.Name
+        let otherSessions = otherImpls |> List.toArray |> Array.map (fun impl -> TestSession.Empty impl.Name)
 
-        member __.TestedImplementation = testedImpl
-        member __.Test (testId : string) (f : 'Testable -> unit) =
+        override __.TestedImplementation = testedImpl
+        override __.RunTest (perfTest : PerfTest<'Testable>) =
             lock otherSessions (fun () ->
 
-            let thisResult = benchmark testedImpl.ImplementationName testId (fun () -> f testedImpl)
+            let thisResult = Benchmark.Run(perfTest, testedImpl)
             thisSession <- thisSession.Append(thisResult)
+
             let otherResults = 
                 otherImpls 
-                |> List.mapi (fun i o ->
-                    let r = benchmark o.ImplementationName testId (fun () -> f o)
+                |> List.mapi (fun i otherImpl ->
+                    let r = Benchmark.Run(perfTest, otherImpl, catchExceptions = true)
                     otherSessions.[i] <- otherSessions.[i].Append(r)
                     let isFaster = comparer.IsBetterOrEquivalent thisResult r
                     let msg = comparer.GetComparisonMessage thisResult r
@@ -57,9 +60,4 @@
                     if not isFaster then
                         raise <| new PerformanceException(msg, thisResult, other))
 
-        member __.GetTestSessions () = thisSession :: List.ofArray otherSessions
-
-        interface IPerformanceTester<'Testable> with
-            member __.TestedImplementation = __.TestedImplementation
-            member __.Test testId testF = __.Test testId testF
-            member __.GetTestSessions () = __.GetTestSessions ()
+        override __.GetTestResults () = thisSession :: List.ofArray otherSessions

@@ -7,7 +7,7 @@ open PerfUtil
 
 // basic usage
 
-let result = benchmark "test suite foo" "test0" (repeat 100 (fun () -> Thread.Sleep 10))
+let result = Benchmark.Run <| repeat 100 (fun () -> Thread.Sleep 10)
 
 // build a test setting
 
@@ -18,7 +18,7 @@ type IOperation =
 let dummy name (interval:int) = 
     {
         new IOperation with
-            member __.ImplementationName = name
+            member __.Name = name
             member __.Run () = System.Threading.Thread.Sleep(interval)
     }
 
@@ -26,16 +26,16 @@ let foo = dummy "foo" 10
 
 // past version comparison
 
-let test = new PastImplementationComparer<IOperation>(foo, Version(0,1), historyFile = "D:/persist.xml", throwOnError = true)
+let tester = new PastImplementationComparer<IOperation>(foo, Version(0,1), historyFile = "D:/persist.xml", throwOnError = true)
 
-test.Test "A" (repeat 100 (fun o -> o.Run()))
-test.Test "B" (repeat 100 (fun o -> o.Run()))
-test.Test "C" (repeat 100 (fun o -> o.Run()))
+tester.Run "test 0" (repeat 100 (fun o -> o.Run()))
+tester.Run "test 1" (repeat 100 (fun o -> o.Run()))
+tester.Run "test 2" (repeat 100 (fun o -> o.Run()))
 
-test.PersistCurrentResults()
+tester.PersistCurrentResults()
 
 // compare to other versions
 
-let test' = new ImplemantationComparer<IOperation>(foo, [dummy "bar" 5 ; dummy "baz" 20 ], throwOnError = true)
+let tester' = new ImplemantationComparer<IOperation>(foo, [dummy "bar" 5 ; dummy "baz" 20 ], throwOnError = true)
 
-test'.Test "A" (repeat 100 (fun o -> o.Run()))
+tester'.Run "test 0" (repeat 100 (fun o -> o.Run()))

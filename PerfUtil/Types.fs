@@ -4,7 +4,57 @@
     open System.IO
     open System.Text
 
-    type BenchmarkResult =
+    /// An abstract implementation interface
+    type ITestable =
+        abstract Name : string
+
+    /// Represents a performance test for a given class of implementations.
+    type PerfTest<'Testable when 'Testable :> ITestable> =
+        {
+            Id : string
+            Test : 'Testable -> unit
+        }
+
+    /// abstract performance tester
+    [<AbstractClass>]
+    type PerformanceTester<'Testable when 'Testable :> ITestable> () =
+
+        abstract TestedImplementation : 'Testable
+        abstract RunTest : PerfTest<'Testable> -> unit
+        abstract GetTestResults : unit -> TestSession list
+
+        member __.Run testId testF = __.RunTest { Id = testId ; Test = testF }
+
+    /// compares between two performance results
+    and IPerformanceComparer =
+        abstract IsBetterOrEquivalent : current:PerfResult -> other:PerfResult -> bool
+        abstract GetComparisonMessage : current:PerfResult -> other:PerfResult -> string
+
+    /// Represents a collection of tests performed in a given run.
+    and TestSession =
+        {   
+            Id : string
+            Date : DateTime
+            /// results indexed by test id
+            Results : Map<string, PerfResult>
+        }
+    with
+        member s.Append(br : PerfResult, ?overwrite) =
+            let overwrite = defaultArg overwrite true
+            if not overwrite && s.Results.ContainsKey br.TestId then
+                invalidOp <| sprintf "A test '%s' has already been recorded." br.TestId
+
+            { s with Results = s.Results.Add(br.TestId, br) }
+
+        static member Empty (id : string) =
+            {
+                Id = id
+                Date = DateTime.Now
+                Results = Map.empty
+            }
+
+    /// Contains performance information
+    and PerfResult =
         {
             /// Test identifier
             TestId : string
@@ -12,6 +62,9 @@
             SessionId : string
             /// Execution date
             Date : DateTime
+
+            /// Catch potential error
+            Error : exn option
 
             Elapsed : TimeSpan
             CpuTime : TimeSpan
@@ -26,53 +79,21 @@
             sb.Append(sprintf ", Date: %O" r.Date) |> ignore
             sb.ToString()
 
-    and TestSession =
-        {   
-            Id : string
-            Date : DateTime
-            /// results indexed by test id
-            Tests : Map<string, BenchmarkResult>
-        }
-    with
-        member s.Append(br : BenchmarkResult, ?overwrite) =
-            let overwrite = defaultArg overwrite true
-            if overwrite && s.Tests.ContainsKey br.TestId then
-                invalidOp <| sprintf "A test '%s' has already been recorded." br.TestId
+        member r.HasFailed = r.Error.IsSome
 
-            { s with Tests = s.Tests.Add(br.TestId, br) }
 
-        static member Empty (id : string) =
-            {
-                Id = id
-                Date = DateTime.Now
-                Tests = Map.empty
-            }
-
-    type PerformanceException (message : string, this : BenchmarkResult, other : BenchmarkResult) =
+    type PerformanceException (message : string, this : PerfResult, other : PerfResult) =
         inherit System.Exception(message)
 
         do assert(this.TestId = other.TestId)
 
         member __.TestId = this.TestId
-        member __.ThisPerformance = this
-        member __.OtherPerformance = other
+        member __.CurrentTestResult = this
+        member __.OtherTestResult = other
 
-
-    /// inherit this interface to describe an abstracted test scenario
-    type ITestable =
-        abstract ImplementationName : string
-
-    /// abstract performance test bed
-    type IPerformanceTester<'Testable when 'Testable :> ITestable> =
-        abstract TestedImplementation : 'Testable
-        abstract Test : testId:string -> testF:('Testable -> unit) -> unit
-        abstract GetTestSessions : unit -> TestSession list
-
-    /// compare between two benchmark results
-    type IPerformanceComparer =
-        abstract IsBetterOrEquivalent : current:BenchmarkResult -> other:BenchmarkResult -> bool
-        abstract GetComparisonMessage : current:BenchmarkResult -> other:BenchmarkResult -> string
-
+    /// indicates that given method is a performance test
+    type PerfTestAttribute() =
+        inherit System.Attribute()
 
     type PerfUtil private () =
         static let mutable result = 

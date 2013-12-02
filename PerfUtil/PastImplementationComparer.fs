@@ -11,6 +11,8 @@
         (currentImpl : 'Testable, testRunId : string, ?historyFile : string, 
             ?comparer : IPerformanceComparer, ?verbose : bool, ?throwOnError : bool) =
 
+        inherit PerformanceTester<'Testable> ()
+
         let comparer = match comparer with Some p -> p | None -> new TimeComparer() :> _ 
         let verbose = defaultArg verbose true
         let throwOnError = defaultArg throwOnError false
@@ -33,10 +35,10 @@
                 invalidArg "otherImpls" <|
                     sprintf "Found duplicate implementation id '%s'." hd
 
-        let compareResultWithHistory (current : BenchmarkResult) =
+        let compareResultWithHistory (current : PerfResult) =
             let olderRuns =
                 pastSessions
-                |> List.choose (fun s -> s.Tests.TryFind current.TestId)
+                |> List.choose (fun s -> s.Results.TryFind current.TestId)
                 |> List.map (fun older -> 
                     let isFaster = comparer.IsBetterOrEquivalent current older
                     let msg = comparer.GetComparisonMessage current older
@@ -57,17 +59,19 @@
                 ?comparer : IPerformanceComparer, ?verbose : bool, ?throwOnError : bool) =
 
             new PastImplementationComparer<'Testable>
-                (currentImpl, sprintf "%s %O" currentImpl.ImplementationName version, ?historyFile = historyFile, 
+                (currentImpl, sprintf "%s v.%O" currentImpl.Name version, ?historyFile = historyFile, 
                     ?comparer = comparer, ?verbose = verbose, ?throwOnError = throwOnError)
 
-        member __.TestedImplementation = currentImpl
+        override __.TestedImplementation = currentImpl
 
-        member __.Test (testId : string) (testF : 'Testable -> unit) =
+        override __.RunTest (perfTest : PerfTest<'Testable>) =
             if isCommited.Value then invalidOp "Test run has been finalized."
             lock currentSession (fun () ->
-                let result = benchmark testRunId testId (fun () -> testF currentImpl)
+                let result = Benchmark.Run(perfTest, currentImpl)
                 currentSession <- currentSession.Append(result)
                 do compareResultWithHistory result)
+
+        override __.GetTestResults () = currentSession :: pastSessions
 
         /// append current test results to persistence file
         member __.PersistCurrentResults () =
@@ -75,12 +79,5 @@
                 match isCommited.Value with
                 | true -> invalidOp "Cannot commit results twice."
                 | false ->
-                    sessionToFile currentImpl.ImplementationName historyFile (currentSession :: pastSessions)
+                    sessionToFile currentImpl.Name historyFile (currentSession :: pastSessions)
                     isCommited := true)
-
-        member __.GetTestSessions () = currentSession :: pastSessions
-
-        interface IPerformanceTester<'Testable> with
-            member __.TestedImplementation = __.TestedImplementation
-            member __.Test testId testF = __.Test testId testF
-            member __.GetTestSessions () = __.GetTestSessions ()

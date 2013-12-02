@@ -1,20 +1,24 @@
 ﻿namespace PerfUtil
 
-    [<AutoOpen>]
-    module Benchmark =
+    open System
+    open System.Reflection
 
-        open System
+    open PerfUtil.Utils
 
-        let inline repeat times (f : 'State -> unit) (state : 'State) =
-            for i = 1 to times do f state
+    type Benchmark private () =
             
-        let private lockObj = box 42
-        let private proc = System.Diagnostics.Process.GetCurrentProcess()
-        let private numGC = System.GC.MaxGeneration
+        static let lockObj = box 42
+        static let proc = System.Diagnostics.Process.GetCurrentProcess()
+        static let numGC = System.GC.MaxGeneration
 
         // benchmark code, taken from FSI
 
-        let benchmark sessionId testId (f : unit -> unit) =
+        static member Run<'State>(testF : 'State -> unit, state : 'State, ?repetitions, ?sessionId, ?testId, ?catchExceptions) =
+            let repetitions = defaultArg repetitions 1
+            let catchExceptions = defaultArg catchExceptions false
+            let testId = defaultArg testId ""
+            let sessionId = defaultArg sessionId ""
+
             lock lockObj (fun () ->
 
             let stopwatch = new System.Diagnostics.Stopwatch()
@@ -25,23 +29,44 @@
                 GC.Collect(3)
                 System.Threading.Thread.Sleep(100)
 
-            let startGC = [| for i in 0 .. numGC -> System.GC.CollectionCount(i) |]
+
+            let gcDelta = Array.zeroCreate<int> (numGC + 1)
+            let inline computeGcDelta () =
+                for i = 0 to numGC do
+                    gcDelta.[i] <- System.GC.CollectionCount(i) - gcDelta.[i]
+
+            do computeGcDelta ()
             let startTotal = proc.TotalProcessorTime
             let date = DateTime.Now
             stopwatch.Start()
 
-            let res = f ()
+            let error = 
+                try 
+                    for i = 1 to repetitions do testF state 
+                    None 
+                with e when catchExceptions -> Some e
 
             stopwatch.Stop()
             let total = proc.TotalProcessorTime - startTotal
-            let spanGC = [ for i in 0 .. numGC -> System.GC.CollectionCount(i) - startGC.[i] ]
+            do computeGcDelta ()
 
             {
                 Date = date
                 TestId = testId
                 SessionId = sessionId
 
+                Error = error
+
                 Elapsed = stopwatch.Elapsed
                 CpuTime = total
-                GcDelta = spanGC
+                GcDelta = Array.toList gcDelta
             })
+            
+
+        static member Run(testF : unit -> unit, ?repetitions, ?sessionId, ?testId, ?catchExceptions) =
+            Benchmark.Run(testF, (), ?repetitions = repetitions, ?sessionId = sessionId, 
+                                        ?testId = testId, ?catchExceptions = catchExceptions)
+
+        static member Run(perfTest : PerfTest<'Impl>, impl : 'Impl, ?repetitions, ?catchExceptions) =
+            Benchmark.Run(perfTest.Test, impl, sessionId = impl.Name, testId = perfTest.Id, 
+                                    ?repetitions = repetitions, ?catchExceptions = catchExceptions)

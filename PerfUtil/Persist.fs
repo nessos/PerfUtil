@@ -8,7 +8,8 @@
 
         let private xn name = XName.Get name
 
-        let testToXml (br : BenchmarkResult) =
+        let testToXml (br : PerfResult) =
+            if br.HasFailed then raise <| new NotSupportedException("Cannot persist failed benchmarks.")
             XElement(xn "testResult",
                 XAttribute(xn "testId", br.TestId),
                 XAttribute(xn "testDate", br.Date),
@@ -25,6 +26,8 @@
                 SessionId = sessionId
                 Date = xEl.Attribute(xn "testDate").Value |> DateTime.Parse
 
+                Error = None
+
                 Elapsed = xEl.Element(xn "elapsedTime").Value |> int64 |> TimeSpan.FromTicks
                 CpuTime = xEl.Element(xn "cpuTime").Value |> int64 |> TimeSpan.FromTicks
                 GcDelta =
@@ -37,7 +40,7 @@
             XElement(xn "testRun",
                 XAttribute(xn "id", tests.Id),
                 XAttribute(xn "date", tests.Date.ToString()),
-                tests.Tests 
+                tests.Results 
                 |> Map.toSeq 
                 |> Seq.map snd 
                 |> Seq.sortBy (fun b -> b.Date) 
@@ -54,7 +57,7 @@
             {
                 Id = id
                 Date = date
-                Tests = tests
+                Results = tests
             }
 
         let sessionsToXml (sessionName : string) (session : TestSession list) =
