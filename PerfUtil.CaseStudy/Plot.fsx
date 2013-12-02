@@ -18,7 +18,7 @@ let plot yaxis (metric : PerfResult -> float) (results : PerfResult list) =
     ch.ShowChart()
 
 
-// read performance tests from 'Tests' module and run performance tests
+// read performance tests from 'Tests' module and run them
 let results =
     PerfTest<ISerializer>.OfModuleMarker<Tests.Marker>()
     |> PerfTest.run SerializerComparer.Create
@@ -26,5 +26,4 @@ let results =
 // plot everything
 results
 |> TestSession.groupByTest
-|> Map.toList
-|> List.iter (snd >> plot "milliseconds" (fun r -> r.Elapsed.TotalMilliseconds))
+|> Map.iter (fun _ r -> plot "milliseconds" (fun r -> r.Elapsed.TotalMilliseconds) r)

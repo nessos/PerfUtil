@@ -5,7 +5,12 @@
 
     open PerfUtil.Utils
 
-    /// Compares implementation performance against a list of other implementations
+    /// <summary>Compares given implementation performance against a collection of other implementations.</summary>
+    /// <param name="testedImpl">Implementation under test.</param>
+    /// <param name="otherImpls">Secondary implementations to be compared against.</param>
+    /// <param name="comparer">Specifies a custom performance comparer. Default to the TimeComparer.</param>
+    /// <param name="verbose">Print performance results to stdout.</param>
+    /// <param name="throwOnError">Raise an exception if performance comparison fails. Defaults to false.</param>
     type ImplemantationComparer<'Testable when 'Testable :> ITestable>
         (testedImpl : 'Testable, otherImpls : 'Testable list, ?comparer : IPerformanceComparer, ?verbose, ?throwOnError) =
         

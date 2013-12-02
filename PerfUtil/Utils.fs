@@ -42,11 +42,11 @@
                 sprintf "%s: %s failed with %O." other.TestId (quoteText other.SessionId) e
             | _ ->
                 sprintf "%s: %s was %.2fx faster and %.2fx more memory efficient than %s."
-                    other.TestId 
-                        (quoteText this.SessionId)
-                        (getTimeSpanRatio this.Elapsed other.Elapsed)
-                        (getSpaceRatio this other)
-                        (quoteText other.SessionId)
+                    (quoteText other.TestId)
+                    (quoteText this.SessionId)
+                    (getTimeSpanRatio this.Elapsed other.Elapsed)
+                    (getSpaceRatio this other)
+                    (quoteText other.SessionId)
 
         /// only returns items in enumeration that appear as duplicates
         let getDuplicates xs =
