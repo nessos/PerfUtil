@@ -106,7 +106,7 @@ let test = PerfTest<IOperation>.OfModuleMarker<Tests.Marker> () |> List.head
 
 ```
 
-### NUnit Support
+#### NUnit Support
 
 A collection of performance tests can be used to define NUnit tests.
 To do so, simply place a concrete instance of the `NUnitPerf` abstract class
@@ -119,7 +119,7 @@ type NUnitPerf<'Impl when 'Impl :> ITestable> () =
     abstract PerfTests : PerfTest<'Impl> list
 ```
 
-### Plotting Results
+#### Plotting Results
 
 Using `FSharp.Charting`, the following code provides a way to plot test results:
 ```fsharp
@@ -145,7 +145,7 @@ TestSession.groupByTest results
 
 ```
 
-### Case Study
+#### Case Study
 
 For more in-depth examples, I have included a simple performance testing implementation 
 for the `FsPickler` serializer, which can be found in the `PerfUtil.CaseStudy` project.
