@@ -82,6 +82,7 @@
             doc.Save(path)
             
         let sessionOfFile (path : string) =
+            let path = Path.GetFullPath path
             if File.Exists(path) then
                 XDocument.Load(path) |> sessionsOfXml |> snd
             elif not <| Directory.Exists(Path.GetDirectoryName(path)) then
