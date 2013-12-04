@@ -12,24 +12,40 @@
     /// <param name="historyFile">Specifies path to persisted past test results. Defaults to 'PerfUtil.DefaultPersistenceFile'.</param>
     /// <param name="verbose">Print performance results to stdout.</param>
     /// <param name="throwOnError">Raise an exception if performance comparison fails. Defaults to false.</param>
+    /// <param name="overwrite">Overwrite sessions with identical run id, if such session exists. Defaults to true.</param>
     type PastImplementationComparer<'Testable when 'Testable :> ITestable>
         (currentImpl : 'Testable, testRunId : string, ?historyFile : string, 
-            ?comparer : IPerformanceComparer, ?verbose : bool, ?throwOnError : bool) =
+            ?comparer : IPerformanceComparer, ?verbose : bool, ?throwOnError : bool, ?overwrite : bool) =
 
         inherit PerformanceTester<'Testable> ()
 
         let comparer = match comparer with Some p -> p | None -> new TimeComparer() :> _ 
         let verbose = defaultArg verbose true
         let throwOnError = defaultArg throwOnError false
+        let overwrite = defaultArg overwrite true
         let historyFile = defaultArg historyFile PerfUtil.DefaultPersistenceFile
 
         let mutable currentSession = TestSession.Empty testRunId
-        let pastSessions = sessionOfFile historyFile
+        let pastSessions = 
+            match sessionsOfFile historyFile with
+            | Some(id, sessions) when id = currentImpl.Name -> sessions
+            | Some(id,_) -> 
+                invalidOp <| 
+                    sprintf "PerfUtil: Expected session id '%s', but '%s' contains id '%s'."
+                        currentImpl.Name historyFile id
+            | None -> []
+
         let isCommited = ref false
 
-        do 
+        do
+            if pastSessions |> List.exists (fun s -> s.Id = testRunId) then
+                let msg = sprintf "a past test with id '%s' already exists in history file." testRunId
+                if not overwrite then invalidOp msg
+                elif verbose then
+                    Console.Error.WriteLine(sprintf "WARNING: %s" msg)
+
             let duplicates =
-                currentSession :: pastSessions
+                pastSessions
                 |> Seq.map (fun s -> s.Id)
                 |> getDuplicates
                 |> Seq.toList
@@ -37,8 +53,7 @@
             match duplicates with
             | [] -> ()
             | hd :: _ -> 
-                invalidArg "otherImpls" <|
-                    sprintf "Found duplicate implementation id '%s'." hd
+                invalidOp <| sprintf "Found duplicate implementation id '%s'." hd
 
         let compareResultWithHistory (current : PerfResult) =
             let olderRuns =
@@ -65,12 +80,13 @@
         /// <param name="historyFile">Specifies path to persisted past test results. Defaults to 'PerfUtil.DefaultPersistenceFile'.</param>
         /// <param name="verbose">Print performance results to stdout.</param>
         /// <param name="throwOnError">Raise an exception if performance comparison fails. Defaults to false.</param>
+        /// <param name="overwrite">Overwrite sessions with identical run id, if such session exists. Defaults to false.</param>
         new (currentImpl : 'Testable, version : Version, ?historyFile : string, 
-                ?comparer : IPerformanceComparer, ?verbose : bool, ?throwOnError : bool) =
+                ?comparer : IPerformanceComparer, ?verbose : bool, ?throwOnError : bool, ?overwrite : bool) =
 
             new PastImplementationComparer<'Testable>
                 (currentImpl, sprintf "%s v.%O" currentImpl.Name version, ?historyFile = historyFile, 
-                    ?comparer = comparer, ?verbose = verbose, ?throwOnError = throwOnError)
+                    ?comparer = comparer, ?verbose = verbose, ?throwOnError = throwOnError, ?overwrite = overwrite)
 
         override __.TestedImplementation = currentImpl
 
@@ -83,11 +99,14 @@
 
         override __.GetTestResults () = currentSession :: pastSessions
 
-        /// append current test results to persistence file
-        member __.PersistCurrentResults () =
+        /// <summary>append current test results to persistence file.</summary>
+        /// <param name="file">Optionally, specifies a file path to persist to.</param>
+        member __.PersistCurrentResults (?file) =
+            let file = defaultArg file historyFile
             lock isCommited (fun () ->
                 match isCommited.Value with
                 | true -> invalidOp "Cannot commit results twice."
                 | false ->
-                    sessionToFile currentImpl.Name historyFile (currentSession :: pastSessions)
+                    let pastSessions = pastSessions |> List.filter (fun s -> s.Id <> testRunId)
+                    sessionsToFile currentImpl.Name file (currentSession :: pastSessions)
                     isCommited := true)

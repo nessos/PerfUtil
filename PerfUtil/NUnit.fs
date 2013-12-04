@@ -14,8 +14,8 @@
         /// specifies the performance tests to be tested.
         abstract PerfTests : PerfTest<'Impl> list
 
-        member internal u.TestCaseProvider = 
+        member internal u.GetTestCases () = 
             u.PerfTests |> Seq.map (fun t -> TestCaseData(t).SetName(quoteText t.Id))
 
-        [<Test ; TestCaseSource("TestCaseProvider")>]
+        [<Test ; TestCaseSource("GetTestCases")>]
         member u.PerformanceTests(test : PerfTest<'Impl>) = u.PerfTester.RunTest test

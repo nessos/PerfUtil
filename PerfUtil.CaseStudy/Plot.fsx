@@ -17,13 +17,24 @@ let plot yaxis (metric : PerfResult -> float) (results : PerfResult list) =
     let ch = Chart.Bar(values, ?Name = name, ?Title = name, YTitle = yaxis)
     ch.ShowChart()
 
+// plot milliseconds
+let plotMS (results : TestSession list) = 
+    results 
+    |> TestSession.groupByTest
+    |> Map.iter (fun _ rs -> plot "milliseconds" (fun r -> r.Elapsed.TotalMilliseconds) rs)
 
 // read performance tests from 'Tests' module and run them
-let results =
-    PerfTest<ISerializer>.OfModuleMarker<Tests.Marker>()
-    |> PerfTest.run SerializerComparer.Create
+let perfResults =
+    PerfTest.OfModuleMarker<Tests.Marker>()
+    |> PerfTest.run (fun () -> SerializationPerf.CreateImplementationComparer () :> _)
 
 // plot everything
-results
-|> TestSession.groupByTest
-|> Map.iter (fun _ r -> plot "milliseconds" (fun r -> r.Elapsed.TotalMilliseconds) r)
+plotMS perfResults
+
+// compare performance tests to past versions
+let pastPerfResults =
+    PerfTest.OfModuleMarker<Tests.Marker> ()
+    |> PerfTest.run (fun () -> SerializationPerf.CreatePastVersionComparer (__SOURCE_DIRECTORY__ + "/fspResults.xml") :> _)
+
+// plot everything
+plotMS pastPerfResults

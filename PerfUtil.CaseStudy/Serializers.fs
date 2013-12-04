@@ -38,9 +38,17 @@
             member __.Deserialize (stream : Stream) = fsp.Deserialize<'T>(stream)
 
 
-    type SerializerComparer =
+    type SerializationPerf =
 
-        static member Create (?throwOnError) =
+        static member CreateImplementationComparer (?throwOnError) =
             let this = new FSPSerializer() :> ISerializer
             let others = [ new BFSerializer() :> ISerializer ; new NDCSerializer() :> _ ]
-            new ImplemantationComparer<ISerializer>(this, others, ?throwOnError = throwOnError) :> PerformanceTester<ISerializer>
+            let comparer = new MeanComparer(spaceFactor = 0.2, leastAcceptableImprovementFactor = 1.)
+            new ImplemantationComparer<ISerializer>(this, others, comparer = comparer, ?throwOnError = throwOnError)
+
+        static member CreatePastVersionComparer (historyFile, ?throwOnError) =
+            let this = new FSPSerializer () :> ISerializer
+            let version = typeof<FsPickler.FsPickler>.Assembly.GetName().Version
+            let comparer = new MeanComparer(spaceFactor = 0.2, leastAcceptableImprovementFactor = 0.7)
+            new PastImplementationComparer<ISerializer>(
+                    this, version, historyFile = historyFile, comparer = comparer, ?throwOnError = throwOnError)

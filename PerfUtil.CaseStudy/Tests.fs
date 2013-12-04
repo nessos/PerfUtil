@@ -77,3 +77,9 @@
 
         [<PerfTest>]
         let ``Large Quotation`` s = roundtrip 1000 largeQuotation s
+
+
+        let set = set [ for i in 1 .. 1000 -> string i, i]
+
+        [<PerfTest>]
+        let ``FSharp Set`` s = roundtrip 100 set s

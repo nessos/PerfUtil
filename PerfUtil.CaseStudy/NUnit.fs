@@ -1,11 +1,32 @@
 ﻿namespace PerfUtil.CaseStudy
 
     open PerfUtil
+    open NUnit.Framework
 
-    // create an NUnit test bed
+    // create NUnit test beds
 
-    type SerializationTests() =
+    type ``Serializer Comparer``() =
+        inherit NUnitPerf<ISerializer> ()
+        
+        let tests = PerfTest.OfModuleMarker<Tests.Marker> ()
+        let tester = SerializationPerf.CreateImplementationComparer(throwOnError = true)
+
+        override __.PerfTester = tester :> _
+        override __.PerfTests = tests
+
+
+    type ``Past Version Comparer`` () =
         inherit NUnitPerf<ISerializer> ()
 
-        override __.PerfTester = SerializerComparer.Create(throwOnError = true)
-        override __.PerfTests = PerfTest.OfModuleMarker<Tests.Marker> ()
+        let persistResults = true
+        let historyFile = "fspResults.xml"
+
+        let tests = PerfTest.OfModuleMarker<Tests.Marker> ()
+        let tester = SerializationPerf.CreatePastVersionComparer(historyFile, throwOnError = true)
+
+        override __.PerfTester = tester :> _
+        override __.PerfTests = tests
+
+        [<TestFixtureTearDown>]
+        member __.PersistResults () =
+            if persistResults then tester.PersistCurrentResults()

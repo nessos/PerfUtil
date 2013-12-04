@@ -39,7 +39,7 @@
         let sessionToXml (tests : TestSession) =
             XElement(xn "testRun",
                 XAttribute(xn "id", tests.Id),
-                XAttribute(xn "date", tests.Date.ToString()),
+                XAttribute(xn "date", tests.Date),
                 tests.Results 
                 |> Map.toSeq 
                 |> Seq.map snd 
@@ -77,15 +77,15 @@
             name, sessions
 
 
-        let sessionToFile name (path : string) (sessions : TestSession list) =
+        let sessionsToFile name (path : string) (sessions : TestSession list) =
             let doc = sessionsToXml name sessions
             doc.Save(path)
             
-        let sessionOfFile (path : string) =
+        let sessionsOfFile (path : string) =
             let path = Path.GetFullPath path
             if File.Exists(path) then
-                XDocument.Load(path) |> sessionsOfXml |> snd
+                XDocument.Load(path) |> sessionsOfXml |> Some
             elif not <| Directory.Exists(Path.GetDirectoryName(path)) then
                 invalidOp <| sprintf "invalid path '%s'." path
             else
-                []
+                None

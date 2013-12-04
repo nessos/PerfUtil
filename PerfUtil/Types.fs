@@ -45,14 +45,14 @@
             Results : Map<string, PerfResult>
         }
     with
-        member s.Append(br : PerfResult, ?overwrite) =
+        member internal s.Append(br : PerfResult, ?overwrite) =
             let overwrite = defaultArg overwrite true
             if not overwrite && s.Results.ContainsKey br.TestId then
                 invalidOp <| sprintf "A test '%s' has already been recorded." br.TestId
 
             { s with Results = s.Results.Add(br.TestId, br) }
 
-        static member Empty (id : string) =
+        static member internal Empty (id : string) =
             {
                 Id = id
                 Date = DateTime.Now

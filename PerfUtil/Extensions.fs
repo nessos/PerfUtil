@@ -62,7 +62,10 @@
 
             /// persist a collection of test sessions to a given file path.
             let toFile (path : string) (tests : TestSession list) =
-                sessionToFile "" path tests
+                sessionsToFile "" path tests
 
             /// load a collection of test sessions from xml file.
-            let ofFile (path : string) = sessionOfFile path
+            let ofFile (path : string) = 
+                match sessionsOfFile path with
+                | None -> raise <| new System.IO.FileNotFoundException()
+                | Some(_,sessions) -> sessions
