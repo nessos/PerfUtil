@@ -36,8 +36,8 @@
         let verbose = defaultArg verbose true
         let throwOnError = defaultArg throwOnError false
 
-        let mutable thisSession = TestSession.Empty testedImpl.Name
-        let otherSessions = otherImpls |> List.toArray |> Array.map (fun impl -> TestSession.Empty impl.Name)
+        let mutable thisSession = TestSession.Empty currentHost testedImpl.Name
+        let otherSessions = otherImpls |> List.toArray |> Array.map (fun impl -> TestSession.Empty currentHost impl.Name)
 
         override __.TestedImplementation = testedImpl
         override __.RunTest (perfTest : PerfTest<'Testable>) =

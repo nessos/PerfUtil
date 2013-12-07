@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <testSuite suiteName="FsPickler">
-  <testRun id="FsPickler v.0.6.3.34077" date="2013-12-04T12:56:44.3212851+02:00">
+  <testRun id="FsPickler v.0.6.3.34077" hostname="grothendieck" date="2013-12-04T12:56:44.3212851+02:00">
     <testResult testId="Tests.int list" testDate="2013-12-04T12:56:44.4682851+02:00">
       <elapsedTime>2468030</elapsedTime>
       <cpuTime>2496016</cpuTime>

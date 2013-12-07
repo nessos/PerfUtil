@@ -25,7 +25,7 @@
         let overwrite = defaultArg overwrite true
         let historyFile = defaultArg historyFile PerfUtil.DefaultPersistenceFile
 
-        let mutable currentSession = TestSession.Empty testRunId
+        let mutable currentSession = TestSession.Empty currentHost testRunId
         let pastSessions = 
             match sessionsOfFile historyFile with
             | Some(id, sessions) when id = currentImpl.Name -> sessions
@@ -43,6 +43,15 @@
                 if not overwrite then invalidOp msg
                 elif verbose then
                     Console.Error.WriteLine(sprintf "WARNING: %s" msg)
+
+            match pastSessions |> List.tryFind (fun s -> s.Hostname <> currentHost) with
+            | Some session ->
+                if verbose then
+                    let msg = 
+                        sprintf "WARNING: Past session '%s' was performed on foreign host '%s'." 
+                            session.Id session.Hostname
+                    Console.Error.WriteLine(msg)
+            | _ -> ()
 
             let duplicates =
                 pastSessions

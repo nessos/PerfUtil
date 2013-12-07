@@ -6,6 +6,8 @@
 
     module internal Utils =
 
+        let currentHost = System.Net.Dns.GetHostName()
+
         [<Literal>]
         let gcGenWeight = 10
         
@@ -39,7 +41,8 @@
             | Some e, _ ->
                 sprintf "%s: %s failed with %O." this.TestId (quoteText this.SessionId) e
             | _, Some e ->
-                sprintf "%s: %s failed with %O." other.TestId (quoteText other.SessionId) e
+                // no need to display entire stacktrace on 'other' implementation.
+                sprintf "%s: %s failed with '%s'." other.TestId (quoteText other.SessionId) e.Message
             | _ ->
                 sprintf "%s: %s was %.2fx faster and %.2fx more memory efficient than %s."
                     (quoteText other.TestId)

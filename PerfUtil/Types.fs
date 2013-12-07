@@ -41,6 +41,8 @@
         {   
             Id : string
             Date : DateTime
+            /// host id that performed given test.
+            Hostname : string
             /// results indexed by test id
             Results : Map<string, PerfResult>
         }
@@ -52,9 +54,10 @@
 
             { s with Results = s.Results.Add(br.TestId, br) }
 
-        static member internal Empty (id : string) =
+        static member internal Empty hostname (id : string) =
             {
                 Id = id
+                Hostname = hostname
                 Date = DateTime.Now
                 Results = Map.empty
             }

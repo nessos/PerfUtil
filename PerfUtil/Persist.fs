@@ -48,6 +48,7 @@
 
         let sessionOfXml (xEl : XElement) =
             let id = xEl.Attribute(xn "id").Value
+            let host = xEl.Attributes(xn "hostname") |> Seq.tryPick (fun a -> Some a.Value)
             let date = xEl.Attribute(xn "date").Value |> DateTime.Parse
             let tests = 
                 xEl.Elements(xn "testResult") 
@@ -56,6 +57,7 @@
                 |> Map.ofSeq
             {
                 Id = id
+                Hostname = defaultArg host "unknown"
                 Date = date
                 Results = tests
             }
