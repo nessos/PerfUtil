@@ -9,12 +9,13 @@
         let private xn name = XName.Get name
 
         let testToXml (br : PerfResult) =
-            if br.HasFailed then raise <| new NotSupportedException("Cannot persist failed benchmarks.")
+            let errorMsg = match br.Error with Some e -> e | None -> ""
             XElement(xn "testResult",
                 XAttribute(xn "testId", br.TestId),
                 XAttribute(xn "testDate", br.Date),
                 XElement(xn "elapsedTime", br.Elapsed.Ticks),
                 XElement(xn "cpuTime", br.CpuTime.Ticks),
+                XElement(xn "error", errorMsg),
                 XElement(xn "gcDelta",
                     br.GcDelta 
                     |> List.mapi (fun gen delta -> XElement(xn <| sprintf "gen%d" gen, delta)))
@@ -26,7 +27,12 @@
                 SessionId = sessionId
                 Date = xEl.Attribute(xn "testDate").Value |> DateTime.Parse
 
-                Error = None
+                Error = 
+                    match xEl.Attribute(xn "error") with
+                    | null -> None
+                    | xel ->
+                        if String.IsNullOrWhiteSpace xel.Value then None
+                        else Some xel.Value
 
                 Elapsed = xEl.Element(xn "elapsedTime").Value |> int64 |> TimeSpan.FromTicks
                 CpuTime = xEl.Element(xn "cpuTime").Value |> int64 |> TimeSpan.FromTicks

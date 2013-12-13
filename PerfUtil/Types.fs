@@ -72,8 +72,8 @@
             /// Execution date
             Date : DateTime
 
-            /// Catch potential error
-            Error : exn option
+            /// Catch potential error message
+            Error : string option
 
             Elapsed : TimeSpan
             CpuTime : TimeSpan

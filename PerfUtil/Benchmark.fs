@@ -51,7 +51,7 @@
                 try 
                     for i = 1 to repetitions do testF state 
                     None 
-                with e when catchExceptions -> Some e
+                with e when catchExceptions -> Some e.Message
 
             stopwatch.Stop()
             let total = proc.TotalProcessorTime - startTotal

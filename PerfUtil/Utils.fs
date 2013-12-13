@@ -41,8 +41,7 @@
             | Some e, _ ->
                 sprintf "%s: %s failed with %O." this.TestId (quoteText this.SessionId) e
             | _, Some e ->
-                // no need to display entire stacktrace on 'other' implementation.
-                sprintf "%s: %s failed with '%s'." other.TestId (quoteText other.SessionId) e.Message
+                sprintf "%s: %s failed with '%s'." other.TestId (quoteText other.SessionId) e
             | _ ->
                 sprintf "%s: %s was %.2fx faster and %.2fx more memory efficient than %s."
                     (quoteText other.TestId)
