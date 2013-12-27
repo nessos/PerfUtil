@@ -9,13 +9,17 @@
         let private xn name = XName.Get name
 
         let testToXml (br : PerfResult) =
-            let errorMsg = match br.Error with Some e -> e | None -> ""
+
             XElement(xn "testResult",
                 XAttribute(xn "testId", br.TestId),
                 XAttribute(xn "testDate", br.Date),
                 XElement(xn "elapsedTime", br.Elapsed.Ticks),
                 XElement(xn "cpuTime", br.CpuTime.Ticks),
-                XElement(xn "error", errorMsg),
+                seq { 
+                    match br.Error with 
+                    | Some msg -> yield XElement(xn "error", msg) 
+                    | None -> ()
+                },
                 XElement(xn "gcDelta",
                     br.GcDelta 
                     |> List.mapi (fun gen delta -> XElement(xn <| sprintf "gen%d" gen, delta)))
@@ -28,7 +32,7 @@
                 Date = xEl.Attribute(xn "testDate").Value |> DateTime.Parse
 
                 Error = 
-                    match xEl.Attribute(xn "error") with
+                    match xEl.Element(xn "error") with
                     | null -> None
                     | xel ->
                         if String.IsNullOrWhiteSpace xel.Value then None
