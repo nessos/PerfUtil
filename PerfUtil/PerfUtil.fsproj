@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>PerfUtil</RootNamespace>
     <AssemblyName>PerfUtil</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>PerfUtil</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
