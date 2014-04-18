@@ -5,6 +5,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PerfUtil", "PerfUtil\PerfUt
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PerfUtil.CaseStudy", "PerfUtil.CaseStudy\PerfUtil.CaseStudy.fsproj", "{171F5C16-0EC8-44C0-AFD4-1BC83F87F7E0}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PerfUtil.NUnit", "PerfUtil.NUnit\PerfUtil.NUnit.fsproj", "{62AE558E-EF5C-4D53-A0D7-1B960DCBD463}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{171F5C16-0EC8-44C0-AFD4-1BC83F87F7E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{171F5C16-0EC8-44C0-AFD4-1BC83F87F7E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{171F5C16-0EC8-44C0-AFD4-1BC83F87F7E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62AE558E-EF5C-4D53-A0D7-1B960DCBD463}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62AE558E-EF5C-4D53-A0D7-1B960DCBD463}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62AE558E-EF5C-4D53-A0D7-1B960DCBD463}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62AE558E-EF5C-4D53-A0D7-1B960DCBD463}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
