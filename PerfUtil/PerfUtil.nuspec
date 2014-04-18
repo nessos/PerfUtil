@@ -13,8 +13,5 @@
         <summary>A simple F# utility for testing performance.</summary>
         <releaseNotes>Initial, experimental release.</releaseNotes>
         <tags>F#, performance tests, unit tests</tags>
-        <dependencies>
-            <dependency id="NUnit" version="2.6.2" />
-        </dependencies>
     </metadata>
 </package>
