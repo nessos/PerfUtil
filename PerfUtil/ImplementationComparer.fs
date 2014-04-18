@@ -11,7 +11,7 @@
     /// <param name="comparer">Specifies a custom performance comparer. Default to the TimeComparer.</param>
     /// <param name="verbose">Print performance results to stdout.</param>
     /// <param name="throwOnError">Raise an exception if performance comparison fails. Defaults to false.</param>
-    type ImplemantationComparer<'Testable when 'Testable :> ITestable>
+    type ImplementationComparer<'Testable when 'Testable :> ITestable>
         (testedImpl : 'Testable, otherImpls : 'Testable list, ?comparer : IPerformanceComparer, ?verbose, ?throwOnError) =
         
         inherit PerformanceTester<'Testable>()

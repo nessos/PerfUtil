@@ -44,7 +44,7 @@
             let this = new FSPSerializer() :> ISerializer
             let others = [ new BFSerializer() :> ISerializer ; new NDCSerializer() :> _ ]
             let comparer = new MeanComparer(spaceFactor = 0.2, leastAcceptableImprovementFactor = 1.)
-            new ImplemantationComparer<ISerializer>(this, others, comparer = comparer, ?throwOnError = throwOnError)
+            new ImplementationComparer<ISerializer>(this, others, comparer = comparer, ?throwOnError = throwOnError)
 
         static member CreatePastVersionComparer (historyFile, ?throwOnError) =
             let this = new FSPSerializer () :> ISerializer
