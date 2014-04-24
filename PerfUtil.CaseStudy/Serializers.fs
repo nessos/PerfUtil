@@ -43,12 +43,12 @@
         static member CreateImplementationComparer (?throwOnError) =
             let this = new FSPSerializer() :> ISerializer
             let others = [ new BFSerializer() :> ISerializer ; new NDCSerializer() :> _ ]
-            let comparer = new MeanComparer(spaceFactor = 0.2, leastAcceptableImprovementFactor = 1.)
+            let comparer = new WeightedComparer(spaceFactor = 0.2, leastAcceptableImprovementFactor = 1.)
             new ImplementationComparer<ISerializer>(this, others, comparer = comparer, ?throwOnError = throwOnError)
 
         static member CreatePastVersionComparer (historyFile, ?throwOnError) =
             let this = new FSPSerializer () :> ISerializer
             let version = typeof<FsPickler.FsPickler>.Assembly.GetName().Version
-            let comparer = new MeanComparer(spaceFactor = 0.2, leastAcceptableImprovementFactor = 0.7)
+            let comparer = new WeightedComparer(spaceFactor = 0.2, leastAcceptableImprovementFactor = 0.7)
             new PastImplementationComparer<ISerializer>(
                     this, version, historyFile = historyFile, comparer = comparer, ?throwOnError = throwOnError)

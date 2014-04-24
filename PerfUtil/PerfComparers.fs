@@ -25,7 +25,7 @@
 
             member __.GetComparisonMessage current other = defaultComparisonMessage current other
 
-    and MeanComparer (?spaceFactor : float, ?leastAcceptableImprovementFactor) =
+    and WeightedComparer (?spaceFactor : float, ?leastAcceptableImprovementFactor) =
         let spaceFactor = defaultArg spaceFactor 0.2
         let timeFactor = 1. - spaceFactor
         let leastAcceptableImprovementFactor = defaultArg leastAcceptableImprovementFactor 1.
