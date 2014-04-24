@@ -1,8 +1,17 @@
-﻿namespace PerfUtil
+﻿namespace PerfUtil.NUnit
 
     open NUnit.Framework
 
-    open PerfUtil.Utils
+    open PerfUtil
+
+    module private Utils =
+
+        // add single quotes if text contains whitespace
+        let quoteText (text : string) =
+            if text |> Seq.exists System.Char.IsWhiteSpace then
+                sprintf "'%s'" text
+            else
+                text
 
     [<AbstractClass>]
     [<TestFixture>]
@@ -15,7 +24,7 @@
         abstract PerfTests : PerfTest<'Impl> list
 
         member internal u.GetTestCases () = 
-            u.PerfTests |> Seq.map (fun t -> TestCaseData(t).SetName(quoteText t.Id))
+            u.PerfTests |> Seq.map (fun t -> TestCaseData(t).SetName(Utils.quoteText t.Id))
 
         [<Test ; TestCaseSource("GetTestCases")>]
         member u.PerformanceTests(test : PerfTest<'Impl>) = u.PerfTester.RunTest test

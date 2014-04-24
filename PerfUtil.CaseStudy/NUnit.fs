@@ -1,6 +1,8 @@
 ﻿namespace PerfUtil.CaseStudy
 
     open PerfUtil
+    open PerfUtil.NUnit
+
     open NUnit.Framework
 
     // create NUnit test beds
