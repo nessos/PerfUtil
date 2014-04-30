@@ -25,6 +25,19 @@
 
             member __.GetComparisonMessage current other = defaultComparisonMessage current other
 
+    /// The mean comparer compares space and time usage for the subject under test
+    /// with another PerfResult to see if the current run as better or worse. Also see
+    /// TimeComparer and AbsoluteComparer.
+    ///
+    /// <param name="spaceFactor">Specifies the weight to assign space usage when making
+    /// the decision on whether the current run was better or worse. By default the weight
+    /// is 0.2 and time is 1 - 0.2. Accepts [0.0, 1.0].</param>
+    ///
+    /// <param name="leastAcceptableImprovementFactor">
+    /// A factor of 'how much better' the this implementation needs to be the other, defaulting
+    /// to 1.0, meaning it must be at least as good. Turn this knob down to say that you need
+    /// this implementation to be slightly less good, or up to ensure it's better than the
+    /// other.</param>
     and WeightedComparer (?spaceFactor : float, ?leastAcceptableImprovementFactor) =
         let spaceFactor = defaultArg spaceFactor 0.2
         let timeFactor = 1. - spaceFactor
