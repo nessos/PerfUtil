@@ -1,3 +1,6 @@
+### 0.1.6
+* Add support for warmups and repeats
+
 ### 0.1.5
 * Remove NUnit dependency
 * Add PerfUtil.NUnit nuget package
