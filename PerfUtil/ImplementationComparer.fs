@@ -9,10 +9,11 @@
     /// <param name="testedImpl">Implementation under test.</param>
     /// <param name="otherImpls">Secondary implementations to be compared against.</param>
     /// <param name="comparer">Specifies a custom performance comparer. Default to the TimeComparer.</param>
+    /// <param name="warmup">Perform a warmup run before attempting benchmark. Defaults to false.</param>
     /// <param name="verbose">Print performance results to stdout.</param>
     /// <param name="throwOnError">Raise an exception if performance comparison fails. Defaults to false.</param>
     type ImplementationComparer<'Testable when 'Testable :> ITestable>
-        (testedImpl : 'Testable, otherImpls : 'Testable list, ?comparer : IPerformanceComparer, ?verbose, ?throwOnError) =
+        (testedImpl : 'Testable, otherImpls : 'Testable list, ?comparer : IPerformanceComparer, ?warmup, ?verbose, ?throwOnError) =
         
         inherit PerformanceTester<'Testable>()
 
@@ -34,6 +35,7 @@
 
         let comparer = match comparer with Some c -> c | None -> new TimeComparer() :> _
         let verbose = defaultArg verbose true
+        let warmup = defaultArg warmup false
         let throwOnError = defaultArg throwOnError false
 
         let mutable thisSession = TestSession.Empty currentHost testedImpl.Name
@@ -43,13 +45,13 @@
         override __.RunTest (perfTest : PerfTest<'Testable>) =
             lock otherSessions (fun () ->
 
-            let thisResult = Benchmark.Run(perfTest, testedImpl)
+            let thisResult = Benchmark.Run(perfTest, testedImpl, warmup = warmup)
             thisSession <- thisSession.Append(thisResult)
 
             let otherResults = 
                 otherImpls 
                 |> List.mapi (fun i otherImpl ->
-                    let r = Benchmark.Run(perfTest, otherImpl, catchExceptions = true)
+                    let r = Benchmark.Run(perfTest, otherImpl, catchExceptions = true, warmup = warmup)
                     otherSessions.[i] <- otherSessions.[i].Append(r)
                     let isFaster = comparer.IsBetterOrEquivalent thisResult r
                     let msg = comparer.GetComparisonMessage thisResult r

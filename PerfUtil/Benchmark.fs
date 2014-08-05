@@ -16,19 +16,25 @@
         /// <summary>Benchmarks a given computation.</summary>
         /// <param name="testF">Test function.</param>
         /// <param name="state">Input state to the test function.</param>
-        /// <param name="repetitions">Number of times to repeat the benchmark. Defaults to 1.</param>
+        /// <param name="repeat">Number of times to repeat the benchmark. Defaults to 1.</param>
+        /// <param name="warmup">Perform a warmup run before attempting benchmark. Defaults to false.</param>
         /// <param name="sessionId">Test session identifier given to benchmark. Defaults to empty string.</param>
         /// <param name="testId">Test identifier given to benchmark. Defaults to empty string.</param>
         /// <param name="catchExceptions">Catches exceptions raised by the test function. Defaults to false.</param>
-        static member Run<'State>(testF : 'State -> unit, state : 'State, ?repetitions, ?sessionId, ?testId, ?catchExceptions) =
-            let repetitions = defaultArg repetitions 1
+        static member Run<'State>(testF : 'State -> unit, state : 'State, ?repeat, ?warmup, ?sessionId, ?testId, ?catchExceptions) =
+            let repeat = defaultArg repeat 1
             let catchExceptions = defaultArg catchExceptions false
+            let warmup = defaultArg warmup false
             let testId = defaultArg testId ""
             let sessionId = defaultArg sessionId ""
 
             lock lockObj (fun () ->
 
             let stopwatch = new System.Diagnostics.Stopwatch()
+
+            if warmup then
+                try testF state
+                with e when catchExceptions -> ()
 
             do 
                 GC.Collect(3)
@@ -49,7 +55,7 @@
 
             let error = 
                 try 
-                    for i = 1 to repetitions do testF state 
+                    for i = 1 to repeat do testF state 
                     None 
                 with e when catchExceptions -> Some e.Message
 
@@ -64,6 +70,8 @@
 
                 Error = error
 
+                Repeat = repeat
+
                 Elapsed = stopwatch.Elapsed
                 CpuTime = total
                 GcDelta = Array.toList gcDelta
@@ -72,19 +80,20 @@
 
         /// <summary>Benchmarks a given computation.</summary>
         /// <param name="testF">Test function.</param>
-        /// <param name="repetitions">Number of times to repeat the benchmark. Defaults to 1.</param>
+        /// <param name="repeat">Number of times to repeat the benchmark. Defaults to 1.</param>
+        /// <param name="warmup">Perform a warmup run before attempting benchmark. Defaults to false.</param>
         /// <param name="sessionId">Test session identifier given to benchmark. Defaults to empty string.</param>
         /// <param name="testId">Test identifier given to benchmark. Defaults to empty string.</param>
         /// <param name="catchExceptions">Catches exceptions raised by the test function. Defaults to false.</param>
-        static member Run(testF : unit -> unit, ?repetitions, ?sessionId, ?testId, ?catchExceptions) =
-            Benchmark.Run(testF, (), ?repetitions = repetitions, ?sessionId = sessionId, 
+        static member Run(testF : unit -> unit, ?repeat, ?warmup, ?sessionId, ?testId, ?catchExceptions) =
+            Benchmark.Run(testF, (), ?repeat = repeat, ?sessionId = sessionId, ?warmup = warmup,
                                         ?testId = testId, ?catchExceptions = catchExceptions)
 
         /// <summary>Runs a given performance test.</summary>
         /// <param name="testF">Performance test.</param>
         /// <param name="impl">Implementation to run the performance test on.</param>
-        /// <param name="repetitions">Number of times to repeat the benchmark. Defaults to 1.</param>
+        /// <param name="warmup">Perform a warmup run before attempting benchmark. Defaults to false.</param>
         /// <param name="catchExceptions">Catches exceptions raised by the test function. Defaults to false.</param>
-        static member Run(perfTest : PerfTest<'Impl>, impl : 'Impl, ?repetitions, ?catchExceptions) =
-            Benchmark.Run(perfTest.Test, impl, sessionId = impl.Name, testId = perfTest.Id, 
-                                    ?repetitions = repetitions, ?catchExceptions = catchExceptions)
+        static member Run(perfTest : PerfTest<'Impl>, impl : 'Impl, ?warmup, ?catchExceptions) =
+            Benchmark.Run(perfTest.Test, impl, sessionId = impl.Name, testId = perfTest.Id, ?warmup = warmup,
+                                    repeat = perfTest.Repeat, ?catchExceptions = catchExceptions)

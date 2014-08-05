@@ -64,8 +64,10 @@
         open System.Reflection
 
         type MemberInfo with
-            member m.ContainsAttribute<'T when 'T :> Attribute> () =
-                m.GetCustomAttributes(typeof<'T>, true) |> Array.isEmpty |> not
+            member m.TryGetAttribute<'T when 'T :> Attribute> () =
+                match m.GetCustomAttributes(typeof<'T>, true) with
+                | [||] -> None
+                | attrs -> attrs.[0] :?> 'T |> Some
 
         type Delegate with
             static member Create<'T when 'T :> Delegate> (parentObj : obj, m : MethodInfo) =
@@ -101,24 +103,22 @@
             if t.IsGenericTypeDefinition then
                 failwithf "Container type '%O' is generic." t
 
-            let isPerfTest (m : MethodInfo) =
-                if m.ContainsAttribute<PerfTestAttribute> () then
+            let tryGetPerfTestAttr (m : MethodInfo) =
+                match m.TryGetAttribute<PerfTestAttribute> () with
+                | Some attr ->
                     if m.IsGenericMethodDefinition then
                         failwithf "Method '%O' marked with [<PerfTest>] attribute but is generic." m
 
                     match m.GetParameters() |> Array.map (fun p -> p.ParameterType) with
-                    | [| param |] when param = typeof<'Impl> -> true
-                    | [| param |] when typeof<ITestable>.IsAssignableFrom(param) -> false
+                    | [| param |] when param = typeof<'Impl> -> Some(m, attr)
+                    | [| param |] when typeof<ITestable>.IsAssignableFrom(param) -> None
                     | _ -> 
                         failwithf "Method '%O' marked with [<PerfTest>] attribute but contains invalid parameters." m
-                else
-                    false
+                | None -> None
 
-            let perfMethods = 
-                t.GetMethods(bindingFlags)
-                |> Array.filter isPerfTest
+            let perfMethods = t.GetMethods(bindingFlags) |> Array.choose tryGetPerfTestAttr
 
-            let requireInstance = perfMethods |> Array.exists (fun m -> not m.IsStatic)
+            let requireInstance = perfMethods |> Array.exists (fun (m,_) -> not m.IsStatic)
 
             if ignoreAbstracts && t.IsAbstract && requireInstance then []
             else
@@ -128,9 +128,10 @@
                     else
                         null
 
-                let perfTestOfMethod (m : MethodInfo) =
+                let perfTestOfMethod (m : MethodInfo, attr : PerfTestAttribute) =
                     {
                         Id = sprintf "%s.%s" m.DeclaringType.Name m.Name
+                        Repeat = attr.Repeat
                         Test = MethodWrapper.WrapUntyped<'Impl> (instance, m) 
                     }
 

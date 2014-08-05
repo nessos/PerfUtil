@@ -26,10 +26,13 @@ let plotMS (results : TestSession list) =
 // read performance tests from 'Tests' module and run them
 let perfResults =
     PerfTest.OfModuleMarker<Tests.Marker>()
-    |> PerfTest.run (fun () -> SerializationPerf.CreateImplementationComparer () :> _)
+    |> PerfTest.run (fun () -> SerializationPerf.CreateImplementationComparer (warmup = true) :> _)
 
 // plot everything
 plotMS perfResults
+
+TestSession.toFile "tests.xml" perfResults
+TestSession.ofFile "tests.xml"
 
 // compare performance tests to past versions
 let pastPerfResults =

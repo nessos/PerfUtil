@@ -13,6 +13,7 @@
     type PerfTest<'Testable when 'Testable :> ITestable> =
         {
             Id : string
+            Repeat : int
             Test : 'Testable -> unit
         }
 
@@ -26,8 +27,6 @@
         abstract RunTest : PerfTest<'Testable> -> unit
         /// Get accumulated test results.
         abstract GetTestResults : unit -> TestSession list
-        /// Benchmarks given function.
-        member __.Run testId testF = __.RunTest { Id = testId ; Test = testF }
 
     /// compares between two performance results
     and IPerformanceComparer =
@@ -75,6 +74,9 @@
             /// Catch potential error message
             Error : string option
 
+            /// Number of times the test was run
+            Repeat : int
+
             Elapsed : TimeSpan
             CpuTime : TimeSpan
             /// Garbage collect differential per generation
@@ -101,8 +103,10 @@
         member __.OtherTestResult = other
 
     /// indicates that given method is a performance test
-    type PerfTestAttribute() =
+    type PerfTestAttribute(repeat : int) =
         inherit System.Attribute()
+        new () = new PerfTestAttribute(1)
+        member __.Repeat = repeat
 
     type PerfUtil private () =
         static let mutable result = 

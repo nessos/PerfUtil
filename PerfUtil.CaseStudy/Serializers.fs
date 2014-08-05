@@ -40,15 +40,15 @@
 
     type SerializationPerf =
 
-        static member CreateImplementationComparer (?throwOnError) =
+        static member CreateImplementationComparer (?throwOnError, ?warmup) =
             let this = new FSPSerializer() :> ISerializer
             let others = [ new BFSerializer() :> ISerializer ; new NDCSerializer() :> _ ]
             let comparer = new WeightedComparer(spaceFactor = 0.2, leastAcceptableImprovementFactor = 1.)
-            new ImplementationComparer<ISerializer>(this, others, comparer = comparer, ?throwOnError = throwOnError)
+            new ImplementationComparer<ISerializer>(this, others, comparer = comparer, ?warmup = warmup, ?throwOnError = throwOnError)
 
-        static member CreatePastVersionComparer (historyFile, ?throwOnError) =
+        static member CreatePastVersionComparer (historyFile, ?throwOnError, ?warmup) =
             let this = new FSPSerializer () :> ISerializer
             let version = typeof<FsPickler.FsPickler>.Assembly.GetName().Version
             let comparer = new WeightedComparer(spaceFactor = 0.2, leastAcceptableImprovementFactor = 0.7)
             new PastImplementationComparer<ISerializer>(
-                    this, version, historyFile = historyFile, comparer = comparer, ?throwOnError = throwOnError)
+                    this, version, historyFile = historyFile, comparer = comparer, ?warmup = warmup, ?throwOnError = throwOnError)

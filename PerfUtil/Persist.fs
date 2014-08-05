@@ -15,6 +15,7 @@
                 XAttribute(xn "testDate", br.Date),
                 XElement(xn "elapsedTime", br.Elapsed.Ticks),
                 XElement(xn "cpuTime", br.CpuTime.Ticks),
+                XElement(xn "repeat", br.Repeat),
                 seq { 
                     match br.Error with 
                     | Some msg -> yield XElement(xn "error", msg) 
@@ -40,6 +41,14 @@
 
                 Elapsed = xEl.Element(xn "elapsedTime").Value |> int64 |> TimeSpan.FromTicks
                 CpuTime = xEl.Element(xn "cpuTime").Value |> int64 |> TimeSpan.FromTicks
+                Repeat = 
+                    match xEl.Element(xn "repeat") with
+                    | null -> 1
+                    | xel ->
+                        let ok,v = Int32.TryParse xel.Value
+                        if ok then v
+                        else 1
+
                 GcDelta =
                     xEl.Element(xn "gcDelta").Elements()
                     |> Seq.map (fun gc -> int gc.Value)
@@ -49,6 +58,7 @@
         let sessionToXml (tests : TestSession) =
             XElement(xn "testRun",
                 XAttribute(xn "id", tests.Id),
+                XAttribute(xn "hostname", tests.Hostname),
                 XAttribute(xn "date", tests.Date),
                 tests.Results 
                 |> Map.toSeq 

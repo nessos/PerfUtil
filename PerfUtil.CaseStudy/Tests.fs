@@ -1,46 +1,52 @@
 ﻿namespace PerfUtil.CaseStudy
 
+    open System.Threading
     open System.IO
+
     open PerfUtil
 
     module Tests =
 
         type Marker = class end
 
-        let roundtrip (times : int)  (x : 'T) (s : ISerializer) =
-            // use a single stream for all tests to eliminate memorystream allocation impact
-            use m = new MemoryStream()
-            for i = 1 to times do
-                s.Serialize m x
-                m.Position <- 0L
-                let x' = s.Deserialize<'T> m
-                m.Position <- 0L
+        // use a single stream for all tests to eliminate memorystream allocation impact
+        let private m = new ThreadLocal<_>(fun () -> new MemoryStream())
 
-        [<PerfTest>]
-        let ``int list`` (s : ISerializer) = roundtrip 1000 [1..1000] s
+        let roundtrip (x : 'T) (s : ISerializer) =
+            let m = m.Value
+            m.Position <- 0L
+            s.Serialize m x
+            m.Position <- 0L
+            let x' = s.Deserialize<'T> m
+            ()
+
+        let intlist = [1 .. 1000]
+
+        [<PerfTest(1000)>]
+        let ``int list`` (s : ISerializer) = roundtrip intlist s
 
 
         let values = [1 .. 1000] |> List.map string
 
-        [<PerfTest>]
-        let ``string list`` (s : ISerializer) = roundtrip 1000 values s
+        [<PerfTest(1000)>]
+        let ``string list`` (s : ISerializer) = roundtrip values s
 
 
         let array3D = Array3D.init 100 100 100 (fun i j k -> float (i * j + k))
 
-        [<PerfTest>]
-        let ``float [,,]`` s = roundtrip 10 array3D s
+        [<PerfTest(10)>]
+        let ``float [,,]`` s = roundtrip array3D s
 
         let objArray = [| obj() ; box "string" ; box (Some 53) ; box 2 |]
 
-        [<PerfTest>]
-        let ``obj []`` s = roundtrip 1000 objArray s
+        [<PerfTest(1000)>]
+        let ``obj []`` s = roundtrip objArray s
 
 
         let arrayDU = [| for i in 1 .. 10000 -> (Some ("lorem ipsum" + string i, i)) |]
 
-        [<PerfTest>]
-        let ``(string * int) option []`` s =  roundtrip 100 arrayDU s
+        [<PerfTest(100)>]
+        let ``(string * int) option []`` s =  roundtrip arrayDU s
 
         
         type BinTree<'T> = Leaf | Node of 'T * BinTree<'T> * BinTree<'T>
@@ -55,8 +61,8 @@
 
         let tree = mkTree 10
 
-        [<PerfTest>]
-        let ``Binary Tree`` s = roundtrip 100 tree s
+        [<PerfTest(100)>]
+        let ``Binary Tree`` s = roundtrip tree s
 
 
         let largeQuotation =
@@ -75,11 +81,11 @@
                 fibAsync 42
             @>
 
-        [<PerfTest>]
-        let ``Large Quotation`` s = roundtrip 1000 largeQuotation s
+        [<PerfTest(1000)>]
+        let ``Large Quotation`` s = roundtrip largeQuotation s
 
 
         let set = set [ for i in 1 .. 1000 -> string i, i]
 
-        [<PerfTest>]
-        let ``FSharp Set`` s = roundtrip 100 set s
+        [<PerfTest(100)>]
+        let ``FSharp Set`` s = roundtrip set s

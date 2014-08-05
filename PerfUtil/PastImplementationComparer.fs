@@ -11,10 +11,11 @@
     /// <param name="testRunId">Unique identifier of current implementation.</param>
     /// <param name="historyFile">Specifies path to persisted past test results. Defaults to 'PerfUtil.DefaultPersistenceFile'.</param>
     /// <param name="verbose">Print performance results to stdout.</param>
+    /// <param name="warmup">Perform a warmup run before attempting benchmark. Defaults to false.</param>
     /// <param name="throwOnError">Raise an exception if performance comparison fails. Defaults to false.</param>
     /// <param name="overwrite">Overwrite sessions with identical run id, if such session exists. Defaults to true.</param>
     type PastImplementationComparer<'Testable when 'Testable :> ITestable>
-        (currentImpl : 'Testable, testRunId : string, ?historyFile : string, 
+        (currentImpl : 'Testable, testRunId : string, ?historyFile : string, ?warmup,
             ?comparer : IPerformanceComparer, ?verbose : bool, ?throwOnError : bool, ?overwrite : bool) =
 
         inherit PerformanceTester<'Testable> ()
@@ -23,6 +24,7 @@
         let verbose = defaultArg verbose true
         let throwOnError = defaultArg throwOnError false
         let overwrite = defaultArg overwrite true
+        let warmup = defaultArg warmup false
         let historyFile = defaultArg historyFile PerfUtil.DefaultPersistenceFile
 
         let mutable currentSession = TestSession.Empty currentHost testRunId
@@ -86,15 +88,16 @@
         /// <summary>Compares current implementation against a collection of past tests.</summary>
         /// <param name="currentImpl">Implementation under test.</param>
         /// <param name="version">Version number of current implementation.</param>
+        /// <param name="warmup">Perform a warmup run before attempting benchmark. Defaults to false.</param>
         /// <param name="historyFile">Specifies path to persisted past test results. Defaults to 'PerfUtil.DefaultPersistenceFile'.</param>
         /// <param name="verbose">Print performance results to stdout.</param>
         /// <param name="throwOnError">Raise an exception if performance comparison fails. Defaults to false.</param>
         /// <param name="overwrite">Overwrite sessions with identical run id, if such session exists. Defaults to false.</param>
-        new (currentImpl : 'Testable, version : Version, ?historyFile : string, 
+        new (currentImpl : 'Testable, version : Version, ?historyFile : string, ?warmup,
                 ?comparer : IPerformanceComparer, ?verbose : bool, ?throwOnError : bool, ?overwrite : bool) =
 
             new PastImplementationComparer<'Testable>
-                (currentImpl, sprintf "%s v.%O" currentImpl.Name version, ?historyFile = historyFile, 
+                (currentImpl, sprintf "%s v.%O" currentImpl.Name version, ?historyFile = historyFile, ?warmup = warmup,
                     ?comparer = comparer, ?verbose = verbose, ?throwOnError = throwOnError, ?overwrite = overwrite)
 
         override __.TestedImplementation = currentImpl
@@ -102,7 +105,7 @@
         override __.RunTest (perfTest : PerfTest<'Testable>) =
             if isCommited.Value then invalidOp "Test run has been finalized."
             lock currentSession (fun () ->
-                let result = Benchmark.Run(perfTest.Test, currentImpl, sessionId = testRunId, testId = perfTest.Id)
+                let result = Benchmark.Run(perfTest.Test, currentImpl, warmup = warmup, sessionId = testRunId, testId = perfTest.Id)
                 currentSession <- currentSession.Append(result)
                 do compareResultWithHistory result)
 
