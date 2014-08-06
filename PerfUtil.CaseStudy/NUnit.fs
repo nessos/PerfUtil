@@ -8,7 +8,7 @@
     // create NUnit test beds
 
     type ``Serializer Comparer``() =
-        inherit NUnitPerf<ISerializer> ()
+        inherit NUnitPerf<Serializer> ()
         
         let tests = PerfTest.OfModuleMarker<Tests.Marker> ()
         let tester = SerializationPerf.CreateImplementationComparer(throwOnError = true)
@@ -18,7 +18,7 @@
 
 
     type ``Past Version Comparer`` () =
-        inherit NUnitPerf<ISerializer> ()
+        inherit NUnitPerf<Serializer> ()
 
         let persistResults = true
         let historyFile = "fspResults.xml"

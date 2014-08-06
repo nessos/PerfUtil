@@ -95,5 +95,8 @@
         /// <param name="warmup">Perform a warmup run before attempting benchmark. Defaults to false.</param>
         /// <param name="catchExceptions">Catches exceptions raised by the test function. Defaults to false.</param>
         static member Run(perfTest : PerfTest<'Impl>, impl : 'Impl, ?warmup, ?catchExceptions) =
-            Benchmark.Run(perfTest.Test, impl, sessionId = impl.Name, testId = perfTest.Id, ?warmup = warmup,
-                                    repeat = perfTest.Repeat, ?catchExceptions = catchExceptions)
+            try 
+                do impl.Init()
+                Benchmark.Run(perfTest.Test, impl, sessionId = impl.Name, testId = perfTest.Id, ?warmup = warmup,
+                                                repeat = perfTest.Repeat, ?catchExceptions = catchExceptions)
+            finally impl.Fini()

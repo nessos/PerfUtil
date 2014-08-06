@@ -9,6 +9,11 @@
         /// Implementation name.
         abstract Name : string
 
+        /// Run before each test run
+        abstract Init : unit -> unit
+        /// Run after each test run
+        abstract Fini : unit -> unit
+
     /// Represents a performance test for a given class of implementations.
     type PerfTest<'Testable when 'Testable :> ITestable> =
         {
@@ -16,6 +21,20 @@
             Repeat : int
             Test : 'Testable -> unit
         }
+
+    type PerfTest =
+        /// <summary>
+        ///     Defines a new PerfTest instance
+        /// </summary>
+        /// <param name="testF">The test function.</param>
+        /// <param name="id">Test id.</param>
+        /// <param name="repeat">Number of repetitions.</param>
+        static member Create<'Testable when 'Testable :> ITestable>(testF, ?id, ?repeat) : PerfTest<'Testable> =
+            {
+                Test = testF
+                Id = match id with Some i -> i | None -> testF.GetType().Name
+                Repeat = defaultArg repeat 1
+            }
 
     /// abstract performance tester
     [<AbstractClass>]
@@ -27,6 +46,16 @@
         abstract RunTest : PerfTest<'Testable> -> unit
         /// Get accumulated test results.
         abstract GetTestResults : unit -> TestSession list
+
+        /// <summary>
+        ///   Benchmarks given function.  
+        /// </summary>
+        /// <param name="testF">The test function.</param>
+        /// <param name="id">Test id.</param>
+        /// <param name="repeat">Number of repetitions.</param>
+        member __.Run (testF : 'Testable -> unit, ?id, ?repeat) = 
+            let test = PerfTest.Create(testF, ?id = id, ?repeat = repeat)
+            __.RunTest test
 
     /// compares between two performance results
     and IPerformanceComparer =

@@ -16,8 +16,8 @@
     @dependencies@
   </metadata>
   <files>
-    <file src="..\PerfUtil.NUnit\bin\Release\PerfUtil.NUnit.dll" target="lib/net40" />
-    <file src="..\PerfUtil.NUnit\bin\Release\PerfUtil.NUnit.pdb" target="lib/net40" />
-    <file src="..\PerfUtil.NUnit\bin\Release\PerfUtil.NUnit.xml" target="lib/net40" />
+    <file src="..\bin\PerfUtil.NUnit.dll" target="lib/net40" />
+    <file src="..\bin\PerfUtil.NUnit.pdb" target="lib/net40" />
+    <file src="..\bin\PerfUtil.NUnit.xml" target="lib/net40" />
   </files>
 </package>

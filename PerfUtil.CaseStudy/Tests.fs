@@ -9,27 +9,18 @@
 
         type Marker = class end
 
-        // use a single stream for all tests to eliminate memorystream allocation impact
-        let private m = new ThreadLocal<_>(fun () -> new MemoryStream())
-
-        let roundtrip (x : 'T) (s : ISerializer) =
-            let m = m.Value
-            m.Position <- 0L
-            s.Serialize m x
-            m.Position <- 0L
-            let x' = s.Deserialize<'T> m
-            ()
+        let inline roundtrip t (s : Serializer) = s.TestRoundTrip t
 
         let intlist = [1 .. 1000]
 
         [<PerfTest(1000)>]
-        let ``int list`` (s : ISerializer) = roundtrip intlist s
+        let ``int list`` (s : Serializer) = roundtrip intlist s
 
 
         let values = [1 .. 1000] |> List.map string
 
         [<PerfTest(1000)>]
-        let ``string list`` (s : ISerializer) = roundtrip values s
+        let ``string list`` (s : Serializer) = roundtrip values s
 
 
         let array3D = Array3D.init 100 100 100 (fun i j k -> float (i * j + k))
