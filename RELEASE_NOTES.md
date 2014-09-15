@@ -1,3 +1,6 @@
+### 0.1.8
+* Fix PastImplementationComparer bug
+
 ### 0.1.7
 * Improve ITestable interface
 

@@ -105,7 +105,7 @@
         override __.RunTest (perfTest : PerfTest<'Testable>) =
             if isCommited.Value then invalidOp "Test run has been finalized."
             lock currentSession (fun () ->
-                let result = Benchmark.Run(perfTest.Test, currentImpl, warmup = warmup, sessionId = testRunId, testId = perfTest.Id)
+                let result = Benchmark.Run(perfTest, currentImpl, warmup = warmup, sessionId = testRunId, testId = perfTest.Id)
                 currentSession <- currentSession.Append(result)
                 do compareResultWithHistory result)
 

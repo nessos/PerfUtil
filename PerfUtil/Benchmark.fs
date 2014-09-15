@@ -94,9 +94,13 @@
         /// <param name="impl">Implementation to run the performance test on.</param>
         /// <param name="warmup">Perform a warmup run before attempting benchmark. Defaults to false.</param>
         /// <param name="catchExceptions">Catches exceptions raised by the test function. Defaults to false.</param>
-        static member Run(perfTest : PerfTest<'Impl>, impl : 'Impl, ?warmup, ?catchExceptions) =
+        /// <param name="sessionId">Test session identifier given to benchmark. Defaults to empty string.</param>
+        /// <param name="testId">Test identifier given to benchmark. Defaults to empty string.</param>
+        static member Run(perfTest : PerfTest<'Impl>, impl : 'Impl, ?warmup, ?catchExceptions, ?sessionId, ?testId) =
             try 
                 do impl.Init()
-                Benchmark.Run(perfTest.Test, impl, sessionId = impl.Name, testId = perfTest.Id, ?warmup = warmup,
+                let testId = defaultArg testId perfTest.Id
+                let sessionId = defaultArg sessionId impl.Name
+                Benchmark.Run(perfTest.Test, impl, sessionId = sessionId, testId = testId, ?warmup = warmup,
                                                 repeat = perfTest.Repeat, ?catchExceptions = catchExceptions)
             finally impl.Fini()
