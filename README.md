@@ -1,4 +1,4 @@
-##PerfUtil
+## PerfUtil
 
 A collection of tools and abstractions for helping performance tests.
 Two main operation modes are provided:
@@ -7,7 +7,7 @@ Two main operation modes are provided:
 
 A NuGet package is available [here](https://www.nuget.org/packages/PerfUtil/).
 
-###Basic Usage
+### Basic Usage
 
 ```fsharp
 open PerfUtil
@@ -23,7 +23,7 @@ val result : PerfResult = {TestId = "";
                            GcDelta = [0; 0; 0];}
 ```
 
-###Comparing implementations
+### Comparing implementations
 
 Defining a test context:
 ```fsharp
