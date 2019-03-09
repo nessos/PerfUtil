@@ -1,4 +1,4 @@
-## PerfUtil
+## PerfUtil [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 
 A collection of tools and abstractions for helping performance tests.
 Two main operation modes are provided:
