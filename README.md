@@ -1,5 +1,7 @@
 ## PerfUtil [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 
+**This Library is obsolete and no longer maintained. Please a modern, properly implemented alterantive like BenchmarkDotNet**
+
 A collection of tools and abstractions for helping performance tests.
 Two main operation modes are provided:
 * Comparison of a given implementation against others.
